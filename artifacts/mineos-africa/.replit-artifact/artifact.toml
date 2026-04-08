@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "MineOS Africa"
+version = "1.0.0"
+id = "artifacts/mineos-africa"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18250
+
+[services.development]
+run = "pnpm --filter @workspace/mineos-africa run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/mineos-africa", "run", "build" ]
+publicDir = "artifacts/mineos-africa/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18250"
+BASE_PATH = "/"

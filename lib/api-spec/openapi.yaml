@@ -3,13 +3,28 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: MineOS Africa - Mining Platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: projects
+    description: Mine project operations
+  - name: surveys
+    description: Topographic survey operations
+  - name: volumes
+    description: Volume calculation operations
+  - name: alerts
+    description: Safety alert operations
+  - name: users
+    description: User management operations
+  - name: production
+    description: Production data operations
+  - name: dashboard
+    description: Dashboard summary operations
+
 paths:
   /healthz:
     get:
@@ -24,6 +39,523 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: List all mine projects
+      responses:
+        "200":
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+    post:
+      operationId: createProject
+      tags: [projects]
+      summary: Create a new mine project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectBody"
+      responses:
+        "201":
+          description: Created project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+
+  /projects/{id}:
+    get:
+      operationId: getProject
+      tags: [projects]
+      summary: Get a mine project by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Not found
+    put:
+      operationId: updateProject
+      tags: [projects]
+      summary: Update a mine project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectBody"
+      responses:
+        "200":
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+    delete:
+      operationId: deleteProject
+      tags: [projects]
+      summary: Delete a mine project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /projects/{id}/summary:
+    get:
+      operationId: getProjectSummary
+      tags: [projects]
+      summary: Get project summary with aggregates
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Project summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectSummary"
+
+  /surveys:
+    get:
+      operationId: listSurveys
+      tags: [surveys]
+      summary: List all surveys
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of surveys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Survey"
+    post:
+      operationId: createSurvey
+      tags: [surveys]
+      summary: Create a new survey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSurveyBody"
+      responses:
+        "201":
+          description: Created survey
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Survey"
+
+  /surveys/{id}:
+    get:
+      operationId: getSurvey
+      tags: [surveys]
+      summary: Get a survey by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Survey details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Survey"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteSurvey
+      tags: [surveys]
+      summary: Delete a survey
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /volumes:
+    get:
+      operationId: listVolumes
+      tags: [volumes]
+      summary: List volume calculations
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of volume calculations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VolumeCalculation"
+    post:
+      operationId: createVolumeCalculation
+      tags: [volumes]
+      summary: Create a volume calculation between two surveys
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVolumeCalculationBody"
+      responses:
+        "201":
+          description: Created volume calculation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VolumeCalculation"
+
+  /volumes/{id}:
+    get:
+      operationId: getVolumeCalculation
+      tags: [volumes]
+      summary: Get a volume calculation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Volume calculation details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VolumeCalculation"
+
+  /alerts:
+    get:
+      operationId: listAlerts
+      tags: [alerts]
+      summary: List safety alerts
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [active, resolved, dismissed]
+      responses:
+        "200":
+          description: List of alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+    post:
+      operationId: createAlert
+      tags: [alerts]
+      summary: Create a new safety alert
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAlertBody"
+      responses:
+        "201":
+          description: Created alert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alert"
+
+  /alerts/{id}:
+    get:
+      operationId: getAlert
+      tags: [alerts]
+      summary: Get an alert by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Alert details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alert"
+    put:
+      operationId: updateAlert
+      tags: [alerts]
+      summary: Update alert status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAlertBody"
+      responses:
+        "200":
+          description: Updated alert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alert"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all users
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserBody"
+      responses:
+        "201":
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{id}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get a user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    put:
+      operationId: updateUser
+      tags: [users]
+      summary: Update a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserBody"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      summary: Delete a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /production:
+    get:
+      operationId: listProductionRecords
+      tags: [production]
+      summary: List production records
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of production records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductionRecord"
+    post:
+      operationId: createProductionRecord
+      tags: [production]
+      summary: Create a production record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductionRecordBody"
+      responses:
+        "201":
+          description: Created production record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionRecord"
+
+  /production/{id}:
+    get:
+      operationId: getProductionRecord
+      tags: [production]
+      summary: Get a production record by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Production record details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionRecord"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get overall dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Get recent activity feed
+      responses:
+        "200":
+          description: Recent activity list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
+  /dashboard/production-chart:
+    get:
+      operationId: getProductionChart
+      tags: [dashboard]
+      summary: Get production data for charts (last 30 days)
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Production chart data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductionChartPoint"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +566,554 @@ components:
       required:
         - status
 
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+        mineType:
+          type: string
+          enum: [open_pit, underground, quarry, alluvial]
+        status:
+          type: string
+          enum: [active, inactive, exploration, closed]
+        area:
+          type: number
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - mineType
+        - status
+        - createdAt
+        - updatedAt
+
+    CreateProjectBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+        mineType:
+          type: string
+          enum: [open_pit, underground, quarry, alluvial]
+        status:
+          type: string
+          enum: [active, inactive, exploration, closed]
+        area:
+          type: number
+          nullable: true
+      required:
+        - name
+        - mineType
+        - status
+
+    ProjectSummary:
+      type: object
+      properties:
+        projectId:
+          type: integer
+        totalSurveys:
+          type: integer
+        lastSurveyDate:
+          type: string
+          format: date-time
+          nullable: true
+        totalVolumeExcavated:
+          type: number
+        activeAlerts:
+          type: integer
+        totalProduction:
+          type: number
+        productionUnit:
+          type: string
+      required:
+        - projectId
+        - totalSurveys
+        - totalVolumeExcavated
+        - activeAlerts
+        - totalProduction
+        - productionUnit
+
+    Survey:
+      type: object
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        name:
+          type: string
+        surveyDate:
+          type: string
+          format: date-time
+        fileType:
+          type: string
+          enum: [dwg, dxf, shp, csv, orthomosaic, point_cloud, dem, geotiff]
+        fileName:
+          type: string
+          nullable: true
+        surveyMethod:
+          type: string
+          enum: [drone, gps, total_station, lidar, satellite]
+        notes:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [processing, completed, error]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - projectId
+        - name
+        - surveyDate
+        - fileType
+        - surveyMethod
+        - status
+        - createdAt
+
+    CreateSurveyBody:
+      type: object
+      properties:
+        projectId:
+          type: integer
+        name:
+          type: string
+        surveyDate:
+          type: string
+          format: date-time
+        fileType:
+          type: string
+          enum: [dwg, dxf, shp, csv, orthomosaic, point_cloud, dem, geotiff]
+        fileName:
+          type: string
+          nullable: true
+        surveyMethod:
+          type: string
+          enum: [drone, gps, total_station, lidar, satellite]
+        notes:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [processing, completed, error]
+      required:
+        - projectId
+        - name
+        - surveyDate
+        - fileType
+        - surveyMethod
+        - status
+
+    VolumeCalculation:
+      type: object
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        name:
+          type: string
+        survey1Id:
+          type: integer
+        survey2Id:
+          type: integer
+        excavatedVolume:
+          type: number
+        fillVolume:
+          type: number
+        netVolume:
+          type: number
+        method:
+          type: string
+          enum: [tin, grid, cross_section]
+        calculatedAt:
+          type: string
+          format: date-time
+        notes:
+          type: string
+          nullable: true
+      required:
+        - id
+        - projectId
+        - name
+        - survey1Id
+        - survey2Id
+        - excavatedVolume
+        - fillVolume
+        - netVolume
+        - method
+        - calculatedAt
+
+    CreateVolumeCalculationBody:
+      type: object
+      properties:
+        projectId:
+          type: integer
+        name:
+          type: string
+        survey1Id:
+          type: integer
+        survey2Id:
+          type: integer
+        excavatedVolume:
+          type: number
+        fillVolume:
+          type: number
+        netVolume:
+          type: number
+        method:
+          type: string
+          enum: [tin, grid, cross_section]
+        notes:
+          type: string
+          nullable: true
+      required:
+        - projectId
+        - name
+        - survey1Id
+        - survey2Id
+        - excavatedVolume
+        - fillVolume
+        - netVolume
+        - method
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        category:
+          type: string
+          enum: [slope_instability, deformation, seismic, flooding, equipment, other]
+        status:
+          type: string
+          enum: [active, resolved, dismissed]
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - projectId
+        - title
+        - description
+        - severity
+        - category
+        - status
+        - createdAt
+
+    CreateAlertBody:
+      type: object
+      properties:
+        projectId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        category:
+          type: string
+          enum: [slope_instability, deformation, seismic, flooding, equipment, other]
+        status:
+          type: string
+          enum: [active, resolved, dismissed]
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+      required:
+        - projectId
+        - title
+        - description
+        - severity
+        - category
+        - status
+
+    UpdateAlertBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [active, resolved, dismissed]
+        title:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [admin, engineer, topographer, geologist, manager]
+        status:
+          type: string
+          enum: [active, inactive]
+        projectIds:
+          type: array
+          items:
+            type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - role
+        - status
+        - projectIds
+        - createdAt
+
+    CreateUserBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [admin, engineer, topographer, geologist, manager]
+        status:
+          type: string
+          enum: [active, inactive]
+        projectIds:
+          type: array
+          items:
+            type: integer
+      required:
+        - name
+        - email
+        - role
+        - status
+
+    UpdateUserBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [admin, engineer, topographer, geologist, manager]
+        status:
+          type: string
+          enum: [active, inactive]
+        projectIds:
+          type: array
+          items:
+            type: integer
+
+    ProductionRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        recordDate:
+          type: string
+          format: date-time
+        material:
+          type: string
+        quantity:
+          type: number
+        unit:
+          type: string
+          enum: [tons, m3, kg]
+        area:
+          type: string
+          nullable: true
+        shift:
+          type: string
+          enum: [day, night, full]
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - projectId
+        - recordDate
+        - material
+        - quantity
+        - unit
+        - shift
+        - createdAt
+
+    CreateProductionRecordBody:
+      type: object
+      properties:
+        projectId:
+          type: integer
+        recordDate:
+          type: string
+          format: date-time
+        material:
+          type: string
+        quantity:
+          type: number
+        unit:
+          type: string
+          enum: [tons, m3, kg]
+        area:
+          type: string
+          nullable: true
+        shift:
+          type: string
+          enum: [day, night, full]
+        notes:
+          type: string
+          nullable: true
+      required:
+        - projectId
+        - recordDate
+        - material
+        - quantity
+        - unit
+        - shift
+
+    DashboardSummary:
+      type: object
+      properties:
+        totalProjects:
+          type: integer
+        activeProjects:
+          type: integer
+        totalSurveys:
+          type: integer
+        pendingSurveys:
+          type: integer
+        activeAlerts:
+          type: integer
+        criticalAlerts:
+          type: integer
+        totalUsers:
+          type: integer
+        totalVolumeExcavated:
+          type: number
+        monthlyProduction:
+          type: number
+        productionUnit:
+          type: string
+      required:
+        - totalProjects
+        - activeProjects
+        - totalSurveys
+        - pendingSurveys
+        - activeAlerts
+        - criticalAlerts
+        - totalUsers
+        - totalVolumeExcavated
+        - monthlyProduction
+        - productionUnit
+
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [survey_uploaded, alert_created, volume_calculated, project_created, user_added, production_recorded]
+        description:
+          type: string
+        projectName:
+          type: string
+          nullable: true
+        userName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - description
+        - createdAt
+
+    ProductionChartPoint:
+      type: object
+      properties:
+        date:
+          type: string
+        quantity:
+          type: number
+        material:
+          type: string
+      required:
+        - date
+        - quantity
+        - material
