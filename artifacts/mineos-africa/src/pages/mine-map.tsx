@@ -5,11 +5,46 @@ import { Map as MapIcon } from "lucide-react";
 export default function MineMap() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<unknown>(null);
-  const { data: projects = [] } = useListProjects();
-  const { data: alerts = [] } = useListAlerts({});
+  const { data: projects } = useListProjects();
+  const { data: alerts } = useListAlerts({});
+
+  const projectsAny = projects as unknown as {
+    data?: Array<{
+      latitude: number | null;
+      longitude: number | null;
+      status: string;
+      name: string;
+      mineType: string;
+      location?: string | null;
+    }>;
+  } | undefined;
+  const alertsAny = alerts as unknown as {
+    data?: Array<{
+      status: string;
+      latitude: number | null;
+      longitude: number | null;
+      title: string;
+      severity: string;
+      category: string;
+    }>;
+  } | undefined;
+
+  const projectRows = Array.isArray(projects)
+    ? projects
+    : Array.isArray(projectsAny?.data)
+      ? projectsAny.data
+      : [];
+  const alertRows = Array.isArray(alerts)
+    ? alerts
+    : Array.isArray(alertsAny?.data)
+      ? alertsAny.data
+      : [];
 
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return;
+    const container = mapRef.current;
+    if (!container || mapInstanceRef.current) return;
+
+    let cancelled = false;
 
     let map: {
       remove(): void;
@@ -20,7 +55,11 @@ export default function MineMap() {
       const L = await import("leaflet");
       await import("leaflet/dist/leaflet.css");
 
-      map = L.map(mapRef.current!, {
+      if (cancelled || !container.isConnected || mapRef.current !== container) {
+        return;
+      }
+
+      map = L.map(container, {
         center: [0, 20],
         zoom: 3,
         zoomControl: true,
@@ -53,7 +92,7 @@ export default function MineMap() {
         iconAnchor: [5, 5],
       });
 
-      for (const project of projects) {
+      for (const project of projectRows) {
         const lat = project.latitude;
         const lng = project.longitude;
         if (!lat || !lng) continue;
@@ -73,7 +112,7 @@ export default function MineMap() {
         `);
       }
 
-      for (const alert of alerts.filter((a) => a.status === "active" && a.latitude && a.longitude)) {
+      for (const alert of alertRows.filter((a) => a.status === "active" && a.latitude && a.longitude)) {
         const lat = alert.latitude;
         const lng = alert.longitude;
         if (!lat || !lng) continue;
@@ -93,12 +132,13 @@ export default function MineMap() {
     initMap();
 
     return () => {
+      cancelled = true;
       if (map) {
         map.remove();
         mapInstanceRef.current = null;
       }
     };
-  }, [projects, alerts]);
+  }, [projectRows, alertRows]);
 
   return (
     <div className="flex flex-col h-full">
@@ -106,8 +146,8 @@ export default function MineMap() {
         <div>
           <h1 className="text-xl font-bold font-mono tracking-tight">Mine Map</h1>
           <p className="text-muted-foreground text-xs mt-0.5">
-            {projects.length} project{projects.length !== 1 ? "s" : ""} ·{" "}
-            {alerts.filter((a) => a.status === "active").length} active alerts
+            {projectRows.length} project{projectRows.length !== 1 ? "s" : ""} ·{" "}
+            {alertRows.filter((a) => a.status === "active").length} active alerts
           </p>
         </div>
         <div className="flex gap-4 text-[11px] font-mono text-muted-foreground">

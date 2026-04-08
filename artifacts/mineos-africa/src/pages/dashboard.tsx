@@ -64,12 +64,28 @@ export default function Dashboard() {
   const { data: summary } = useGetDashboardSummary();
   const { data: activity } = useGetRecentActivity();
   const { data: chartData } = useGetProductionChart({});
+  const activityAny = activity as unknown as {
+    data?: Array<{ id: number; type: string; description: string; projectName?: string; createdAt: string }>;
+  } | undefined;
+  const chartDataAny = chartData as unknown as { data?: Array<{ date: string; quantity: number; material: string }> } | undefined;
 
-  const formattedChart = chartData?.map((d) => ({
+  const activityRows = Array.isArray(activity)
+    ? activity
+    : Array.isArray(activityAny?.data)
+      ? activityAny.data
+      : [];
+
+  const chartRows = Array.isArray(chartData)
+    ? chartData
+    : Array.isArray(chartDataAny?.data)
+      ? chartDataAny.data
+      : [];
+
+  const formattedChart = chartRows.map((d) => ({
     date: new Date(d.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
     quantity: d.quantity,
     material: d.material,
-  })) ?? [];
+  }));
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -178,10 +194,10 @@ export default function Dashboard() {
               Recent Activity
             </h2>
             <div className="space-y-3 overflow-y-auto max-h-[220px]">
-              {(activity ?? []).length === 0 && (
+              {activityRows.length === 0 && (
                 <p className="text-muted-foreground text-sm">No activity recorded yet</p>
               )}
-              {(activity ?? []).map((act) => {
+              {activityRows.map((act) => {
                 const Icon = activityIcons[act.type] ?? Activity;
                 const color = activityColors[act.type] ?? "text-muted-foreground";
                 return (

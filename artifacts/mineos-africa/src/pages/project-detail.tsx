@@ -59,8 +59,10 @@ export default function ProjectDetail() {
   const id = parseInt(params.id);
   const [tab, setTab] = useState<Tab>("overview");
 
-  const { data: project } = useGetProject(id, { query: { enabled: !!id } });
-  const { data: summary } = useGetProjectSummary(id, { query: { enabled: !!id } });
+  const projectQuery = useGetProject(id, { query: { enabled: !!id, queryKey: ["project", id] } });
+  const { data: project } = projectQuery;
+  const summaryQuery = useGetProjectSummary(id, { query: { enabled: !!id, queryKey: ["project-summary", id] } });
+  const { data: summary } = summaryQuery;
   const { data: surveys = [] } = useListSurveys({ projectId: id });
   const { data: volumes = [] } = useListVolumes({ projectId: id });
   const { data: alerts = [] } = useListAlerts({ projectId: id });

@@ -125,7 +125,7 @@ export function useHealthCheck<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -200,7 +200,7 @@ export function useListProjects<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -366,14 +366,14 @@ export function useGetProject<
     >;
     request?: SecondParameter<typeof customFetch>;
   },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+): UseQueryResult<TData, TError> {
   const queryOptions = getGetProjectQueryOptions(id, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -624,14 +624,14 @@ export function useGetProjectSummary<
     >;
     request?: SecondParameter<typeof customFetch>;
   },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+): UseQueryResult<TData, TError> {
   const queryOptions = getGetProjectSummaryQueryOptions(id, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -718,14 +718,14 @@ export function useListSurveys<
     >;
     request?: SecondParameter<typeof customFetch>;
   },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+): UseQueryResult<TData, TError> {
   const queryOptions = getListSurveysQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -896,7 +896,7 @@ export function useGetSurvey<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -1074,7 +1074,7 @@ export function useListVolumes<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -1249,7 +1249,7 @@ export function useGetVolumeCalculation<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -1343,7 +1343,7 @@ export function useListAlerts<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -1514,7 +1514,7 @@ export function useGetAlert<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -1666,7 +1666,7 @@ export function useListUsers<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -1829,7 +1829,7 @@ export function useGetUser<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -2100,7 +2100,7 @@ export function useListProductionRecords<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -2274,7 +2274,7 @@ export function useGetProductionRecord<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -2349,7 +2349,7 @@ export function useGetDashboardSummary<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -2424,7 +2424,7 @@ export function useGetRecentActivity<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
 
 /**
@@ -2524,5 +2524,5 @@ export function useGetProductionChart<
     queryKey: QueryKey;
   };
 
-  return { ...query, queryKey: queryOptions.queryKey };
+  return query as any;
 }
