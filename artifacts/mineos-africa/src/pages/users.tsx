@@ -181,7 +181,11 @@ export default function Users() {
               }`}>
                 {user.status}
               </span>
-              <button onClick={() => handleDelete(user.id)}
+              <button
+                type="button"
+                aria-label={`Remove user ${user.name}`}
+                title={`Remove user ${user.name}`}
+                onClick={() => handleDelete(user.id)}
                 className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-400 transition-all">
                 <Trash2 className="h-3.5 w-3.5" />
               </button>

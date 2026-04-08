@@ -18,8 +18,22 @@ const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
 function NewVolumeDialog() {
   const [open, setOpen] = useState(false);
-  const { data: projects = [] } = useListProjects();
-  const { data: surveys = [] } = useListSurveys({});
+  const { data: projects } = useListProjects();
+  const { data: surveys } = useListSurveys({});
+  const projectsAny = projects as unknown as { data?: Array<{ id: number; name: string }> } | undefined;
+  const surveysAny = surveys as unknown as {
+    data?: Array<{ id: number; projectId: number; name: string }>;
+  } | undefined;
+  const projectRows = Array.isArray(projects)
+    ? projects
+    : Array.isArray(projectsAny?.data)
+      ? projectsAny.data
+      : [];
+  const surveyRows = Array.isArray(surveys)
+    ? surveys
+    : Array.isArray(surveysAny?.data)
+      ? surveysAny.data
+      : [];
   const [form, setForm] = useState({
     projectId: "",
     name: "",
@@ -34,7 +48,7 @@ function NewVolumeDialog() {
   const qc = useQueryClient();
   const createVolume = useCreateVolumeCalculation();
 
-  const projectSurveys = surveys.filter((s) => s.projectId === parseInt(form.projectId) && !isNaN(parseInt(form.projectId)));
+  const projectSurveys = surveyRows.filter((s) => s.projectId === parseInt(form.projectId) && !isNaN(parseInt(form.projectId)));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +81,7 @@ function NewVolumeDialog() {
             <Label className="text-xs">Project *</Label>
             <Select value={form.projectId} onValueChange={(v) => setForm({ ...form, projectId: v, survey1Id: "", survey2Id: "" })}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="Select project" /></SelectTrigger>
-              <SelectContent>{projects.map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}</SelectContent>
+              <SelectContent>{projectRows.map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div>
@@ -132,9 +146,33 @@ function NewVolumeDialog() {
 }
 
 export default function Volumes() {
-  const { data: volumes = [] } = useListVolumes({});
-  const { data: projects = [] } = useListProjects();
-  const projectMap = Object.fromEntries(projects.map((p) => [p.id, p.name]));
+  const { data: volumes } = useListVolumes({});
+  const { data: projects } = useListProjects();
+  const projectsAny = projects as unknown as { data?: Array<{ id: number; name: string }> } | undefined;
+  const volumesAny = volumes as unknown as {
+    data?: Array<{
+      id: number;
+      projectId: number;
+      name: string;
+      method: string;
+      excavatedVolume: number;
+      fillVolume: number;
+      netVolume: number;
+      calculatedAt: string;
+      notes?: string | null;
+    }>;
+  } | undefined;
+  const projectRows = Array.isArray(projects)
+    ? projects
+    : Array.isArray(projectsAny?.data)
+      ? projectsAny.data
+      : [];
+  const volumeRows = Array.isArray(volumes)
+    ? volumes
+    : Array.isArray(volumesAny?.data)
+      ? volumesAny.data
+      : [];
+  const projectMap = Object.fromEntries(projectRows.map((p) => [p.id, p.name]));
 
   const methodLabels: Record<string, string> = {
     tin: "TIN",
@@ -147,12 +185,12 @@ export default function Volumes() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold font-mono tracking-tight">Volume Calculations</h1>
-          <p className="text-muted-foreground text-sm mt-1">{volumes.length} calculation{volumes.length !== 1 ? "s" : ""} registered</p>
+          <p className="text-muted-foreground text-sm mt-1">{volumeRows.length} calculation{volumeRows.length !== 1 ? "s" : ""} registered</p>
         </div>
         <NewVolumeDialog />
       </div>
 
-      {volumes.length === 0 && (
+      {volumeRows.length === 0 && (
         <div className="text-center py-16 text-muted-foreground">
           <Box className="h-8 w-8 mx-auto mb-3 opacity-30" />
           <p className="text-sm">No volume calculations yet</p>
@@ -160,7 +198,7 @@ export default function Volumes() {
       )}
 
       <motion.div initial="hidden" animate="show" variants={container} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {volumes.map((vol) => (
+        {volumeRows.map((vol) => (
           <motion.div key={vol.id} variants={item}
             className="bg-card border border-border rounded-lg p-5 hover:border-primary/30 transition-colors">
             <div className="flex items-start justify-between mb-3">
