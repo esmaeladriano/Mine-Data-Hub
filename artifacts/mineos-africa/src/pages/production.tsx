@@ -21,7 +21,13 @@ const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
 function NewProductionDialog() {
   const [open, setOpen] = useState(false);
-  const { data: projects = [] } = useListProjects();
+  const { data: projects } = useListProjects();
+  const projectsAny = projects as unknown as { data?: Array<{ id: number; name: string }> } | undefined;
+  const projectRows = Array.isArray(projects)
+    ? projects
+    : Array.isArray(projectsAny?.data)
+      ? projectsAny.data
+      : [];
   const [form, setForm] = useState({
     projectId: "",
     recordDate: new Date().toISOString().split("T")[0],
@@ -65,7 +71,7 @@ function NewProductionDialog() {
             <Label className="text-xs">Project *</Label>
             <Select value={form.projectId} onValueChange={(v) => setForm({ ...form, projectId: v })}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="Select project" /></SelectTrigger>
-              <SelectContent>{projects.map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}</SelectContent>
+              <SelectContent>{projectRows.map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -123,17 +129,50 @@ function NewProductionDialog() {
 }
 
 export default function Production() {
-  const { data: records = [] } = useListProductionRecords({});
-  const { data: projects = [] } = useListProjects();
-  const { data: chartData = [] } = useGetProductionChart({});
-  const projectMap = Object.fromEntries(projects.map((p) => [p.id, p.name]));
+  const { data: records } = useListProductionRecords({});
+  const { data: projects } = useListProjects();
+  const { data: chartData } = useGetProductionChart({});
+  const recordsAny = records as unknown as {
+    data?: Array<{
+      id: number;
+      projectId: number;
+      material: string;
+      area: string | null;
+      shift: string;
+      quantity: number;
+      unit: string;
+      recordDate: string;
+    }>;
+  } | undefined;
+  const projectsAny = projects as unknown as { data?: Array<{ id: number; name: string }> } | undefined;
+  const chartAny = chartData as unknown as {
+    data?: Array<{ date: string; quantity: number }>;
+  } | undefined;
 
-  const formattedChart = chartData.slice(-14).map((d) => ({
+  const recordRows = Array.isArray(records)
+    ? records
+    : Array.isArray(recordsAny?.data)
+      ? recordsAny.data
+      : [];
+  const projectRows = Array.isArray(projects)
+    ? projects
+    : Array.isArray(projectsAny?.data)
+      ? projectsAny.data
+      : [];
+  const chartRows = Array.isArray(chartData)
+    ? chartData
+    : Array.isArray(chartAny?.data)
+      ? chartAny.data
+      : [];
+
+  const projectMap = Object.fromEntries(projectRows.map((p) => [p.id, p.name]));
+
+  const formattedChart = chartRows.slice(-14).map((d) => ({
     date: new Date(d.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
     quantity: d.quantity,
   }));
 
-  const totalProduction = records.reduce((sum, r) => sum + r.quantity, 0);
+  const totalProduction = recordRows.reduce((sum, r) => sum + r.quantity, 0);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -141,7 +180,7 @@ export default function Production() {
         <div>
           <h1 className="text-2xl font-bold font-mono tracking-tight">Production</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {records.length} records · Total: {(totalProduction / 1000).toFixed(1)}k units
+            {recordRows.length} records · Total: {(totalProduction / 1000).toFixed(1)}k units
           </p>
         </div>
         <NewProductionDialog />
@@ -168,7 +207,7 @@ export default function Production() {
         )}
 
         <div className="space-y-2">
-          {[...records].reverse().map((record) => (
+          {[...recordRows].reverse().map((record) => (
             <motion.div key={record.id} variants={item}
               className="bg-card border border-border rounded-lg px-5 py-4 flex items-center justify-between hover:border-primary/30 transition-colors">
               <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -189,7 +228,7 @@ export default function Production() {
               </div>
             </motion.div>
           ))}
-          {records.length === 0 && (
+          {recordRows.length === 0 && (
             <div className="text-center py-16 text-muted-foreground">
               <TrendingUp className="h-8 w-8 mx-auto mb-3 opacity-30" />
               <p className="text-sm">No production records yet</p>
