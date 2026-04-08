@@ -42,7 +42,13 @@ const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
 function NewAlertDialog() {
   const [open, setOpen] = useState(false);
-  const { data: projects = [] } = useListProjects();
+  const { data: projects } = useListProjects();
+  const projectsAny = projects as unknown as { data?: Array<{ id: number; name: string }> } | undefined;
+  const projectRows = Array.isArray(projects)
+    ? projects
+    : Array.isArray(projectsAny?.data)
+      ? projectsAny.data
+      : [];
   const [form, setForm] = useState({
     projectId: "",
     title: "",
@@ -86,7 +92,7 @@ function NewAlertDialog() {
             <Label className="text-xs">Project *</Label>
             <Select value={form.projectId} onValueChange={(v) => setForm({ ...form, projectId: v })}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="Select project" /></SelectTrigger>
-              <SelectContent>{projects.map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}</SelectContent>
+              <SelectContent>{projectRows.map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div>
@@ -144,15 +150,38 @@ function NewAlertDialog() {
 
 export default function Alerts() {
   const [filter, setFilter] = useState<"all" | "active" | "resolved" | "dismissed">("all");
-  const { data: allAlerts = [] } = useListAlerts({});
-  const { data: projects = [] } = useListProjects();
+  const { data: allAlerts } = useListAlerts({});
+  const { data: projects } = useListProjects();
+  const projectsAny = projects as unknown as { data?: Array<{ id: number; name: string }> } | undefined;
+  const alertsAny = allAlerts as unknown as {
+    data?: Array<{
+      id: number;
+      projectId: number;
+      title: string;
+      description: string;
+      severity: "low" | "medium" | "high" | "critical";
+      category: keyof typeof categoryLabels;
+      status: "active" | "resolved" | "dismissed";
+      createdAt: string;
+    }>;
+  } | undefined;
+  const projectRows = Array.isArray(projects)
+    ? projects
+    : Array.isArray(projectsAny?.data)
+      ? projectsAny.data
+      : [];
+  const alertRows = Array.isArray(allAlerts)
+    ? allAlerts
+    : Array.isArray(alertsAny?.data)
+      ? alertsAny.data
+      : [];
   const qc = useQueryClient();
   const updateAlert = useUpdateAlert();
-  const projectMap = Object.fromEntries(projects.map((p) => [p.id, p.name]));
+  const projectMap = Object.fromEntries(projectRows.map((p) => [p.id, p.name]));
 
-  const filtered = filter === "all" ? allAlerts : allAlerts.filter((a) => a.status === filter);
-  const active = allAlerts.filter((a) => a.status === "active").length;
-  const critical = allAlerts.filter((a) => a.severity === "critical" && a.status === "active").length;
+  const filtered = filter === "all" ? alertRows : alertRows.filter((a) => a.status === filter);
+  const active = alertRows.filter((a) => a.status === "active").length;
+  const critical = alertRows.filter((a) => a.severity === "critical" && a.status === "active").length;
 
   const handleStatus = async (id: number, status: "resolved" | "dismissed") => {
     await updateAlert.mutateAsync({ id, data: { status } });

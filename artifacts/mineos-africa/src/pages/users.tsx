@@ -108,11 +108,25 @@ function NewUserDialog() {
 
 export default function Users() {
   const [search, setSearch] = useState("");
-  const { data: users = [] } = useListUsers();
+  const { data: users } = useListUsers();
+  const usersAny = users as unknown as {
+    data?: Array<{
+      id: number;
+      name: string;
+      email: string;
+      role: string;
+      status: string;
+    }>;
+  } | undefined;
+  const userRows = Array.isArray(users)
+    ? users
+    : Array.isArray(usersAny?.data)
+      ? usersAny.data
+      : [];
   const qc = useQueryClient();
   const deleteUser = useDeleteUser();
 
-  const filtered = users.filter((u) =>
+  const filtered = userRows.filter((u) =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
     u.email.toLowerCase().includes(search.toLowerCase()) ||
     u.role.toLowerCase().includes(search.toLowerCase())
@@ -133,7 +147,7 @@ export default function Users() {
         <div>
           <h1 className="text-2xl font-bold font-mono tracking-tight">User Management</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {users.filter((u) => u.status === "active").length} active · {users.length} total
+            {userRows.filter((u) => u.status === "active").length} active · {userRows.length} total
           </p>
         </div>
         <NewUserDialog />
@@ -184,7 +198,7 @@ export default function Users() {
 
       <div className="mt-6 grid grid-cols-2 md:grid-cols-5 gap-3">
         {roleGroups.map((role) => {
-          const count = users.filter((u) => u.role === role).length;
+          const count = userRows.filter((u) => u.role === role).length;
           return (
             <div key={role} className="bg-card border border-border rounded-lg p-3 text-center">
               <p className="text-xl font-bold font-mono">{count}</p>
